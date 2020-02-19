@@ -212,6 +212,7 @@ export interface IStrings {
   rows: string;
   slack: string;
   add: string;
+  search: string;
 
   maxChars: string;
   required: string;
