@@ -79,6 +79,7 @@
         "@types/styletron-react": "^5.0.2",
         "@types/styletron-standard": "^2.0.0",
         "@types/yup": "^0.26.30",
+        "cypress": "^4.5.0",
         "encoding": "^0.1.12",
         "http-proxy-middleware": "^1.0.0",
         "netlify-lambda": "^1.5.0",
