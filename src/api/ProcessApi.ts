@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { PageResponse, Process, ProcessCount, ProcessFormValues, ProcessStatus } from '../constants'
+import { PageResponse, Process, ProcessCount, ProcessField, ProcessFormValues, ProcessShort, ProcessState, ProcessStatus } from '../constants'
 import { env } from '../util/env'
 import { convertLegalBasesToFormValues } from './PolicyApi'
 
@@ -9,12 +9,12 @@ export const getProcess = async (processId: string) => {
   return data
 }
 
-export const searchProcess = async (text: string) => {
-  return (await axios.get<PageResponse<Process>>(`${env.pollyBaseUrl}/process/search/${text}`)).data
+export const getProcessByState = async (processField: ProcessField, processState: ProcessState) => {
+  return (await axios.get<PageResponse<ProcessShort>>(`${env.pollyBaseUrl}/process/state?processField=${processField}&processState=${processState}`)).data.content
 }
 
-export const getProcessesForPurpose = async (purpose: string) => {
-  return (await axios.get<PageResponse<Process>>(`${env.pollyBaseUrl}/process/purpose/${purpose}`)).data
+export const searchProcess = async (text: string) => {
+  return (await axios.get<PageResponse<Process>>(`${env.pollyBaseUrl}/process/search/${text}`)).data
 }
 
 export const getProcessesForTeam = async (teamId: string) => {

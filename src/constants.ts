@@ -172,7 +172,9 @@ export interface InformationTypeShort {
 export interface ProcessShort {
   id: string;
   name: string;
-  purposeCode: Code;
+  purpose: Code;
+  department: Code;
+  status?: ProcessStatus;
 }
 
 export interface Process extends IDurationed {
@@ -186,6 +188,7 @@ export interface Process extends IDurationed {
   productTeams: string[];
   products: Code[];
   policies: Policy[];
+  purpose: Code;
   purposeCode: string;
   changeStamp: ChangeStamp;
   dpia?: Dpia;
@@ -358,6 +361,24 @@ export enum ObjectType {
   GENERIC_STORAGE = "GENERIC_STORAGE",
 }
 
+export enum ProcessField {
+  DPIA = "DPIA",
+  PROFILING = "PROFILING",
+  AUTOMATION = "AUTOMATION",
+  RETENTION = "RETENTION",
+  EXCESS_INFO = "EXCESS_INFO",
+  USES_ALL_INFO_TYPE = "USES_ALL_INFO_TYPE",
+  MISSING_LEGAL_BASIS = "MISSING_LEGAL_BASIS",
+  MISSING_ARTICLE_6 = "MISSING_ARTICLE_6",
+  MISSING_ARTICLE_9 = "MISSING_ARTICLE_9",
+}
+
+export enum ProcessState {
+  YES = "YES",
+  NO = "NO",
+  UNKNOWN = "UNKNOWN"
+}
+
 export type NavigableItem = ObjectType | ListName.PURPOSE | ListName.DEPARTMENT | ListName.SUB_DEPARTMENT | ListName.THIRD_PARTY | 'team' | 'productarea';
 
 export interface AuditItem {
@@ -465,6 +486,8 @@ export interface AllProcesses {
   processesInProgress: number;
   processesMissingLegalBases: number;
   processesUsingAllInfoTypes: number;
+  processesMissingArt6: number;
+  processesMissingArt9: number;
   dpia: Counter;
   profiling: Counter | null;
   automation: Counter | null;

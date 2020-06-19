@@ -22,13 +22,14 @@ const routes = {
 const renderMetadata = (description: string, title: string) => (
   <Block marginBottom='scale1000'>
     <Label2 font='font400'>{title}</Label2>
-    <Paragraph2><ReactMarkdown source={description} linkTarget='_blank'/></Paragraph2>
+    <Paragraph2><ReactMarkdown source={description} linkTarget='_blank' /></Paragraph2>
   </Block>
 )
 
 export type PathParams = {
   section: 'purpose' | 'department' | 'subdepartment' | 'team' | 'productarea',
   code: string,
+  filter?: 'ALL' | 'COMPLETED' | 'IN_PROGRESS',
   processId?: string
 }
 
@@ -37,7 +38,7 @@ const PurposePage = (props: RouteComponentProps<PathParams>) => {
   const [team, setTeam] = React.useState<Team>()
   const [productArea, setProductArea] = React.useState<ProductArea>()
 
-  const {params} = props.match
+  const { params } = props.match
   useAwait(codelist.wait())
 
   useEffect(() => {
@@ -107,7 +108,7 @@ const PurposePage = (props: RouteComponentProps<PathParams>) => {
           </Block>
 
           {renderMetadata(getDescription(), metadataTitle())}
-          <ProcessList code={params.code} listName={getCurrentListName()}/>
+          <ProcessList code={params.code} listName={getCurrentListName()} />
         </>
       )}
     </>

@@ -26,28 +26,28 @@ type DepartmentCardProps = {
   department: DepartmentProcess;
 }
 const DepartmentCard = (props: DepartmentCardProps) => {
-  const [useCss] = useStyletron();
-  const linkCss = useCss({textDecoration: 'none'});
-  const {department} = props
+  const { department } = props
 
   return (
     <StatefulTooltip content={codelist.getCode(ListName.DEPARTMENT, department.department)?.shortName} placement={PLACEMENT.topLeft}>
-      <StyledLink href={"/process/department/" + department.department} className={linkCss}>
-        <Card overrides={cardShadow}>
-          <Block
-            display='flex'
-            flexDirection='column'
-            alignItems='center'
-            justifyContent='space-around'
-            width="130px"
-            height="130px"
-          >
-            <Label1 color={theme.colors.accent300} $style={{textAlign: 'center'}}>{parsedDepartmentName(department.department)}</Label1>
-            <TextWithNumber label="Fullførte" number={department.processesCompleted}/>
-            <TextWithNumber label="Under arbeid" number={department.processesInProgress}/>
-          </Block>
-        </Card>
-      </StyledLink>
+      <Card overrides={cardShadow}>
+        <Block
+          display='flex'
+          flexDirection='column'
+          alignItems='center'
+          justifyContent='space-around'
+          width="130px"
+          height="130px"
+        >
+          <Label1 color={theme.colors.accent300} $style={{ textAlign: 'center' }}>{parsedDepartmentName(department.department)}</Label1>
+          <StyledLink href={`/process/department/${department.department}/COMPLETED`}>
+            <TextWithNumber label="Fullført" number={department.processesCompleted} />
+          </StyledLink>
+          <StyledLink href={`/process/department/${department.department}/IN_PROGRESS`}>
+            <TextWithNumber label="Under arbeid" number={department.processesInProgress} />
+          </StyledLink>
+        </Block>
+      </Card>
     </StatefulTooltip>
   )
 }
@@ -56,7 +56,7 @@ type DepartmentsProps = {
   data: DashboardData;
 }
 const Departments = (props: DepartmentsProps) => {
-  const {data} = props
+  const { data } = props
   useAwait(codelist.wait())
 
   const sortedData = () => data.departmentProcesses.sort((a, b) => parsedDepartmentName(a.department).localeCompare(b.department))
@@ -65,7 +65,7 @@ const Departments = (props: DepartmentsProps) => {
     <Block width="100%" display="flex" flexWrap>
       {sortedData().map((department: DepartmentProcess, i: number) => (
         <Block key={i} marginTop={theme.sizing.scale600} marginRight={theme.sizing.scale600}>
-          <DepartmentCard department={department}/>
+          <DepartmentCard department={department} />
         </Block>
       ))}
     </Block>
