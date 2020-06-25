@@ -33,9 +33,11 @@ export interface IStrings {
   legalBasesShort: string;
   subjectCategories: string;
   nationalLaw: string;
-  navMaster: string;
+  orgMaster: string;
+  orgMasterInfTypeHeader: string;
   productTeam: string;
   productTeamFromTK: string;
+  productTeamFromTKHelpText: string;
   product: string;
   products: string;
   team: string;
@@ -46,6 +48,7 @@ export interface IStrings {
   commonExternalProcessResponsible: string;
   commonExternalProcessResponsibleHelpText: string;
   system: string;
+  systems: string;
   disclosure: string;
   disclosures: string;
   documents: string;
@@ -58,15 +61,16 @@ export interface IStrings {
   no: string;
   unclarified: string;
   unknown: string;
-  numberOfProcessesWithUnknownLegalBasis : string;
-  numberOfProcessesWithoutArticle6LegalBasis : string;
-  numberOfProcessesWithoutArticle9LegalBasis : string;
-  processesWithUnknownLegalBasis : string;
-  processesWithoutArticle6LegalBasis : string;
-  processesWithoutArticle9LegalBasis : string;
+  numberOfProcessesWithUnknownLegalBasis: string;
+  numberOfProcessesWithoutArticle6LegalBasis: string;
+  numberOfProcessesWithoutArticle9LegalBasis: string;
+  processesWithUnknownLegalBasis: string;
+  processesWithoutArticle6LegalBasis: string;
+  processesWithoutArticle9LegalBasis: string;
   incompleteLegalBasis: string;
   notFilled: string;
   automation: string;
+  isAutomationNeeded: string;
   status: string;
   processStatus: string;
   processStatusHelpText: string;
@@ -76,6 +80,7 @@ export interface IStrings {
   automaticProcessing: string;
   automaticProcessingExtra: string;
   profiling: string;
+  isProfilingUsed: string;
   profilingExtra: string;
   dataProcessor: string;
   dataProcessorYes: string;
@@ -84,13 +89,15 @@ export interface IStrings {
   dataProcessorExtra: string;
   dataProcessorAgreement: string;
   dataProcessorOutsideEU: string;
-  dataProcessorOutsideEUExtra: string;
+  isDataProcessedOutsideEUEEAHelpText: string;
+  isDataProcessedOutsideEUEEA: string;
   includeDefaultDocument: string;
   inProduction: string;
   notInProduction: string;
   isDpiaRequired: string;
   dpiaReference: string;
-  dpiaNeeded:string;
+  dpiaNeeded: string;
+  dpiaHelpText: string;
   grounds: string;
   reference: string;
   ground: string;
@@ -110,7 +117,7 @@ export interface IStrings {
   lastEvents: string;
   disclosureName: string;
   pvkRequired: string;
-
+  overallPurposeActivity: string;
   // sentence
   containsInformationType: string;
   containsProcesses: string;
@@ -130,7 +137,7 @@ export interface IStrings {
   usefulInformation: string;
   keywordsWrite: string;
   searchWordsWrite: string;
-  navMasterSelect: string;
+  orgMasterSelect: string;
   purposeSelect: string;
   purposeNotFound: string;
   purposeUse: string;
@@ -163,6 +170,7 @@ export interface IStrings {
   usesAllInformationTypesHelpText: string;
   processAutomationHelpText: string;
   profilingHelpText: string;
+  isDataProcessorUsed: string;
   dataProcessorHelpText: string;
   dataProcessorAgreementHelpText: string;
   dataProcessorOutsideEUExtraHelpText: string;
@@ -171,6 +179,12 @@ export interface IStrings {
   retentionDescriptionHelpText: string;
   legalBasisNew: string;
   legalBasisAdd: string;
+  addArticle6: string;
+  addArticle9: string;
+  cardHeaderArticle6: string;
+  cardHeaderArticle9: string;
+  placeHolderArticle6: string;
+  placeHolderArticle9: string;
   gdprSelect: string;
   nationalLawSelect: string;
   descriptionWrite: string;
@@ -374,14 +388,14 @@ const defaultLang = langs.nb
 type IIntl = LocalizedStringsMethods & IStrings;
 
 interface LocalizedStringsFactory {
-  new <T>(props: GlobalStrings<T>, options?: { customLanguageInterface: () => string }): IIntl
+  new<T>(props: GlobalStrings<T>, options?: { customLanguageInterface: () => string }): IIntl
 }
 
 const strings: IntlLangs = {}
 
 Object.keys(langs).forEach((lang) => (strings[lang] = langs[lang].texts))
 
-export const intl: IIntl = new (LocalizedStrings as LocalizedStringsFactory)(strings as any, { customLanguageInterface: () => defaultLang.langCode })
+export const intl: IIntl = new (LocalizedStrings as LocalizedStringsFactory)(strings as any, {customLanguageInterface: () => defaultLang.langCode})
 export const currentLang = () => langs[intl.getLanguage()]
 
 interface IntlLangs {

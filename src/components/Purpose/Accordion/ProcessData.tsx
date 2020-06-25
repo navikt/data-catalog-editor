@@ -1,24 +1,25 @@
-import { Dpia, Process, ProcessStatus } from '../../../constants'
+import {Dpia, Process, ProcessStatus} from '../../../constants'
 import * as React from 'react'
-import { useEffect } from 'react'
-import { getResourceById } from '../../../api'
-import { codelist, ListName } from '../../../service/Codelist'
+import {useEffect} from 'react'
+import {getResourceById} from '../../../api'
+import {codelist, ListName} from '../../../service/Codelist'
 import _includes from 'lodash/includes'
-import { Block } from 'baseui/block'
+import {Block} from 'baseui/block'
 import DataText from '../common/DataText'
-import { intl, theme } from '../../../util'
-import { LegalBasisView } from '../../common/LegalBasis'
-import { ActiveIndicator } from '../../common/Durations'
-import { DotTags } from '../../common/DotTag'
-import { TeamPopover } from '../../common/Team'
-import { boolToText } from '../../common/Radio'
-import { RetentionView } from '../Retention'
-import { env } from '../../../util/env'
+import {intl, theme} from '../../../util'
+import {LegalBasisView} from '../../common/LegalBasis'
+import {ActiveIndicator} from '../../common/Durations'
+import {DotTags} from '../../common/DotTag'
+import {TeamPopover} from '../../common/Team'
+import {boolToText} from '../../common/Radio'
+import {RetentionView} from '../Retention'
+import {env} from '../../../util/env'
+import ReactMarkdown from "react-markdown";
 
 const showDpiaRequiredField = (dpia?: Dpia) => {
   if (dpia?.needForDpia === true) {
     if (dpia.refToDpia) {
-      return `${intl.yes}. ${intl.reference}${dpia.refToDpia}`
+      return <ReactMarkdown source={`${intl.yes}. ${intl.reference}${dpia.refToDpia}`} linkTarget={"_blank"}/>
     } else {
       return intl.yes
     }
@@ -147,7 +148,7 @@ const ProcessData = (props: { process: Process }) => {
             <Block>
               {dataProcessorAgreements &&
               <Block display='flex'>
-                <Block $style={{whiteSpace: 'nowrap'}}>
+                <Block $style={{whiteSpace: 'nowrap', margin:"1rem 0"}}>
                   {`${intl.dataProcessorAgreement}: `}
                 </Block>
                 <DotTags items={process.dataProcessing?.dataProcessorAgreements}/>
@@ -155,7 +156,7 @@ const ProcessData = (props: { process: Process }) => {
               }
             </Block>
             <Block>
-              <span>{intl.dataProcessorOutsideEUExtra}: </span>
+              <span>{intl.isDataProcessedOutsideEUEEAHelpText}: </span>
               <span>{boolToText(process.dataProcessing?.dataProcessorOutsideEU)}</span>
             </Block>
           </Block>}

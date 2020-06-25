@@ -2,7 +2,7 @@ import * as React from 'react'
 import {useEffect} from 'react'
 
 import {Block, BlockProps} from 'baseui/block'
-import {Label1, Label2} from 'baseui/typography'
+import {HeadingSmall, Label2} from 'baseui/typography'
 import {KIND, SIZE as ButtonSize} from 'baseui/button'
 import {AddDocumentToProcessFormValues, LegalBasesUse, Policy, PolicyFormValues, Process, ProcessFormValues, ProcessShort} from '../../constants'
 import {intl, theme, useAwait} from '../../util'
@@ -24,15 +24,16 @@ import {
   updateProcess
 } from '../../api'
 import {StyledSpinnerNext} from 'baseui/spinner'
-import {ListName} from '../../service/Codelist'
+import {codelist, ListName} from '../../service/Codelist'
 import {generatePath, RouteComponentProps, useLocation} from 'react-router'
 import {StyledLink} from 'baseui/link'
 import {env} from '../../util/env'
 import {faFileWord, faPlus} from '@fortawesome/free-solid-svg-icons'
 import Button from '../common/Button'
 import {Select} from 'baseui/select'
-import {PathParams} from '../../pages/PurposePage'
+import {Filter, Section} from '../../pages/PurposePage'
 import {withRouter} from 'react-router-dom'
+import {processPath} from '../../routes'
 
 const rowBlockProps: BlockProps = {
   marginBottom: 'scale800',
@@ -41,30 +42,35 @@ const rowBlockProps: BlockProps = {
 }
 
 type ProcessListProps = {
+  section: Section;
+  filter: Filter;
+  processId?: string;
   code: string;
-  listName?: string;
+  listName?: ListName;
 }
 
 const sortProcess = (list: ProcessShort[]) => list.sort((p1, p2) => p1.name.localeCompare(p2.name, intl.getLanguage()))
 
-const ProcessList = ({code, listName, match, history}: ProcessListProps & RouteComponentProps<PathParams>) => {
+const ProcessList = ({code, listName, filter, processId, section, history}: ProcessListProps & RouteComponentProps<any>) => {
   const [processList, setProcessList] = React.useState<ProcessShort[]>([])
   const [currentProcess, setCurrentProcess] = React.useState<Process | undefined>()
   const [showCreateProcessModal, setShowCreateProcessModal] = React.useState(false)
-  const [errorProcessModal, setErrorProcessModal] = React.useState<string>("")
+  const [errorProcessModal, setErrorProcessModal] = React.useState<string>('')
   const [errorPolicyModal, setErrorPolicyModal] = React.useState(null)
   const [errorDocumentModal, setErrorDocumentModal] = React.useState(null)
   const [isLoadingProcessList, setIsLoadingProcessList] = React.useState(true)
   const [isLoadingProcess, setIsLoadingProcess] = React.useState(true)
   const current_location = useLocation()
   const [status, setStatus] = React.useState([{
-    label: match.params.filter === 'ALL' ? intl.allProcesses : match.params.filter === 'COMPLETED' ? intl.showCompletedProcesses : intl.inProgressProcesses,
-    id: match.params.filter
+    label: filter === 'ALL' ? intl.allProcesses : filter === 'COMPLETED' ? intl.showCompletedProcesses : intl.inProgressProcesses,
+    id: filter
   }])
+  const [codelistLoading, setCodelistLoading] = React.useState(true)
+  useAwait(codelist.wait(), setCodelistLoading)
 
   useEffect(() => {
-    match.params.processId && getProcessById(match.params.processId)
-  }, [match.params.processId])
+    processId && getProcessById(processId)
+  }, [processId])
 
   useEffect(() => {
     (async () => {
@@ -74,23 +80,27 @@ const ProcessList = ({code, listName, match, history}: ProcessListProps & RouteC
     })()
   }, [code, status])
 
-  const handleChangePanel = (processId?: string) => {
-    history.push(generatePath(match.path, {section: match.params.section, code, filter: status.length > 0 && status ? status[0].id : match.params.filter, processId}))
+  const handleChangePanel = (process?: Partial<Process>) => {
+    history.push(generatePath(processPath, {
+      section,
+      code: section === Section.purpose && !!process?.purpose ? process.purpose.code : code,
+      filter: status.length > 0 && status ? status[0].id : filter,
+      processId: process?.id
+    }))
   }
 
   const hasAccess = () => user.canWrite()
 
-  useAwait(user.wait())
-
   const listNameToUrl = () => listName && ({
     'DEPARTMENT': 'department',
     'SUB_DEPARTMENT': 'subDepartment',
-    'PURPOSE': 'purpose'
-  } as { [l: string]: string })[listName]
+    'PURPOSE': 'purpose',
+    'SYSTEM': 'system'
+  } as {[l: string]: string})[listName]
 
   const getProcessList = async () => {
     try {
-      let list: ProcessShort[] = []
+      let list: ProcessShort[]
 
       if (current_location.pathname.includes('team')) {
         let res = await getProcessesForTeam(code)
@@ -101,7 +111,7 @@ const ProcessList = ({code, listName, match, history}: ProcessListProps & RouteC
       } else {
         list = (await getCodelistUsage(listName as ListName, code)).processes
       }
-      if (status[0].id === "ALL") {
+      if (status[0].id === 'ALL') {
         setProcessList(sortProcess(list))
       } else {
         setProcessList(sortProcess(list).filter(p => p.status === status[0].id))
@@ -111,10 +121,10 @@ const ProcessList = ({code, listName, match, history}: ProcessListProps & RouteC
     }
   }
 
-  const getProcessById = async (processId: string) => {
+  const getProcessById = async (id: string) => {
     try {
       setIsLoadingProcess(true)
-      setCurrentProcess(await getProcess(processId))
+      setCurrentProcess(await getProcess(id))
     } catch (err) {
       console.log(err)
     }
@@ -126,13 +136,13 @@ const ProcessList = ({code, listName, match, history}: ProcessListProps & RouteC
     try {
       const newProcess = await createProcess(process)
       setProcessList(sortProcess([...processList, newProcess]))
-      setErrorProcessModal("")
+      setErrorProcessModal('')
       setShowCreateProcessModal(false)
       setCurrentProcess(newProcess)
-      history.push(`/process/purpose/${newProcess.purposeCode}/ALL/${newProcess.id}?create`)
+      history.push(`/process/purpose/${newProcess.purpose.code}/ALL/${newProcess.id}?create`)
     } catch (err) {
-      if (err.response.data.message.includes("already exists")) {
-        setErrorProcessModal("Behandlingen eksisterer allerede.")
+      if (err.response.data.message.includes('already exists')) {
+        setErrorProcessModal('Behandlingen eksisterer allerede.')
         return
       }
       setErrorProcessModal(err.response.data.message)
@@ -144,6 +154,7 @@ const ProcessList = ({code, listName, match, history}: ProcessListProps & RouteC
       const updatedProcess = await updateProcess(values)
       setCurrentProcess(updatedProcess)
       setProcessList(sortProcess([...processList.filter(p => p.id !== updatedProcess.id), updatedProcess]))
+      handleChangePanel(updatedProcess)
       return true
     } catch (err) {
       console.log(err)
@@ -154,7 +165,7 @@ const ProcessList = ({code, listName, match, history}: ProcessListProps & RouteC
     try {
       await deleteProcess(process.id)
       setProcessList(sortProcess(processList.filter((p: ProcessShort) => p.id !== process.id)))
-      setErrorProcessModal("")
+      setErrorProcessModal('')
       return true
     } catch (err) {
       setErrorProcessModal(err)
@@ -213,7 +224,7 @@ const ProcessList = ({code, listName, match, history}: ProcessListProps & RouteC
         subjectCategories: infoType.subjectCategories.map(c => c.code),
         informationType: infoType.informationType,
         process: {...formValues.process, legalBases: []},
-        purposeCode: formValues.process.purposeCode,
+        purposeCode: formValues.process.purpose.code,
         legalBases: [],
         legalBasesOpen: false,
         legalBasesUse: LegalBasesUse.INHERITED_FROM_PROCESS,
@@ -233,13 +244,13 @@ const ProcessList = ({code, listName, match, history}: ProcessListProps & RouteC
     <>
       <Block {...rowBlockProps}>
         <Block>
-          <Label1 font="font400">
+          <HeadingSmall>
             {intl.processes}
-          </Label1>
+          </HeadingSmall>
         </Block>
       </Block>
 
-      <Block display={"flex"} flexDirection={"row-reverse"} alignItems={"center"}>
+      <Block display={'flex'} flexDirection={'row-reverse'} alignItems={'center'}>
         <Block>
           <StyledLink
             style={{textDecoration: 'none'}}
@@ -265,30 +276,30 @@ const ProcessList = ({code, listName, match, history}: ProcessListProps & RouteC
             </Button>
           )}
         </Block>
-        <Block width={"25%"}>
+        <Block width={'25%'}>
           <Select
             backspaceRemoves={false}
             clearable={false}
             deleteRemoves={false}
             escapeClearsValue={false}
             options={[
-              {label: intl.allProcesses, id: "ALL"},
-              {label: intl.inProgressProcesses, id: "IN_PROGRESS"},
-              {label: intl.showCompletedProcesses, id: "COMPLETED"},
+              {label: intl.allProcesses, id: 'ALL'},
+              {label: intl.inProgressProcesses, id: 'IN_PROGRESS'},
+              {label: intl.showCompletedProcesses, id: 'COMPLETED'},
             ]}
             value={status}
             filterOutSelected={false}
             searchable={false}
             onChange={(params: any) => {
               setStatus(params.value)
-              history.push(generatePath(match.path,
-                {section: match.params.section, code, filter: params.value[0].id, processId: undefined}
+              history.push(generatePath(processPath,
+                {section, code, filter: params.value[0].id, processId: undefined}
               ))
             }}
           />
         </Block>
         <Block>
-          <Label2 color={theme.colors.primary} marginRight={"1rem"}>
+          <Label2 color={theme.colors.primary} marginRight={'1rem'}>
             {intl.filter}
           </Label2>
         </Block>
@@ -302,7 +313,7 @@ const ProcessList = ({code, listName, match, history}: ProcessListProps & RouteC
         processList={processList}
         setProcessList={setProcessList}
         currentProcess={currentProcess}
-        onChangeProcess={handleChangePanel}
+        onChangeProcess={id => handleChangePanel({id})}
         submitDeleteProcess={handleDeleteProcess}
         submitEditProcess={handleEditProcess}
         submitCreatePolicy={handleCreatePolicy}
@@ -314,7 +325,7 @@ const ProcessList = ({code, listName, match, history}: ProcessListProps & RouteC
         errorDocumentModal={errorDocumentModal}
       />
       }
-
+      {!codelistLoading &&
       <ModalProcess
         title={intl.processingActivitiesNew}
         onClose={() => setShowCreateProcessModal(false)}
@@ -322,8 +333,14 @@ const ProcessList = ({code, listName, match, history}: ProcessListProps & RouteC
         submit={(values: ProcessFormValues) => handleCreateProcess(values)}
         errorOnCreate={errorProcessModal}
         isEdit={false}
-        initialValues={convertProcessToFormValues({purposeCode: code})}
-      />
+        initialValues={convertProcessToFormValues({
+          purpose: section === Section.purpose ? codelist.getCode(ListName.PURPOSE, code) : undefined,
+          department: section === Section.department ? codelist.getCode(ListName.DEPARTMENT, code) : undefined,
+          subDepartments: section === Section.subdepartment ? [codelist.getCode(ListName.SUB_DEPARTMENT, code)!] : [],
+          products: section === Section.system ? [codelist.getCode(ListName.SYSTEM, code)!] : [],
+          productTeams: section === Section.team ? [code] : []
+        })}
+      />}
     </>
   )
 }
