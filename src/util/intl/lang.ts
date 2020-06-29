@@ -101,7 +101,7 @@ export const no: IStrings = {
   keywordsWrite: "Legg til nøkkelord",
   searchWordsWrite: "Legg til søkeord",
   orgMasterSelect: "Velg master",
-  purposeSelect: "Velg formål",
+  purposeSelect: "Velg overordnet behandlingsaktivitet",
   purposeNotFound: "Fant ingen formål",
   purposeUse: "Brukes til formål",
   informationTypeExternalUse: "Utleveres til",
@@ -353,7 +353,7 @@ export const no: IStrings = {
   usesAllInformationTypesHelpText:
     "Brukes for å angi at denne behandlingen bruker alle opplysningstyper. Brukes derfor kun unntaksvis for noen spesielle behandlinger som f.eks. logginnsyn, innsyn etter personopplysningsloven, behandlinger knyttet til personvernombudet eller Sikkerhetsseksjonens virksomhet.",
   processAutomationHelpText:
-    "Treffes det et vedtak eller en avgjørelse som er basert på helautomatisert behandling av personopplysninger? Altså avgjørelser uten menneskelig innvirkning.",
+    "Med helautomatisert behandling menes behandling av personopplysninger som skjer uten menneskelig innvirkning",
   profilingHelpText: "Med profilering menes analysering av personopplysninger for å avdekke adferd, preferanser, evner eller behov.",
   dataProcessorHelpText:
     "En databehandler er en virksomhet som behandler personopplysninger på NAVs vegne.",
@@ -473,7 +473,7 @@ export const en: IStrings = {
   keywordsWrite: "Enter and add keywords",
   searchWordsWrite: "Enter and add search words",
   orgMasterSelect: "Select master",
-  purposeSelect: "Select purpose",
+  purposeSelect: "Select overall process activity",
   purposeNotFound: "Found no purposes",
   purposeUse: "Used for purposes",
   informationTypeExternalUse: "External use",
