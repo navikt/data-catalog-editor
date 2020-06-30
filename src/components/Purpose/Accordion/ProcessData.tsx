@@ -2,23 +2,24 @@ import { Dpia, Process, ProcessStatus } from '../../../constants'
 import * as React from 'react'
 import { useEffect } from 'react'
 import { getResourceById } from '../../../api'
-import { codelist, ListName, Code } from '../../../service/Codelist'
+import { codelist, ListName } from '../../../service/Codelist'
 import { Block } from 'baseui/block'
 import DataText from '../common/DataText'
-import { intl, theme } from '../../../util'
+import { intl } from '../../../util'
 import { LegalBasisView } from '../../common/LegalBasis'
 import { ActiveIndicator } from '../../common/Durations'
 import { DotTags } from '../../common/DotTag'
-import { TeamPopover } from '../../common/Team'
+import { TeamList } from '../../common/Team'
 import { boolToText } from '../../common/Radio'
 import { RetentionView } from '../Retention'
 import { env } from '../../../util/env'
-import ReactMarkdown from 'react-markdown'
+import { uniqBy } from 'lodash'
+import { Markdown } from '../../common/Markdown'
 
 const showDpiaRequiredField = (dpia?: Dpia) => {
   if (dpia?.needForDpia === true) {
     if (dpia.refToDpia) {
-      return <ReactMarkdown source={`${intl.yes}. ${intl.reference}${dpia.refToDpia}`} linkTarget='_blank' />
+      return <Markdown source={`${intl.yes}. ${intl.reference}${dpia.refToDpia}`} />
     } else {
       return intl.yes
     }
@@ -50,10 +51,7 @@ const ProcessData = (props: { process: Process }) => {
   }, [process])
 
 
-  const subjectCategoriesSummarised = process.policies.flatMap(p => p.subjectCategories).reduce((acc, curr) => {
-    if (!acc.find(item => item.code === curr.code)) acc = [...acc, curr]
-    return acc
-  }, [] as Code[])
+  const subjectCategoriesSummarised = uniqBy(process.policies.flatMap(p => p.subjectCategories), 'code')
 
   return (
     <Block>
@@ -61,8 +59,11 @@ const ProcessData = (props: { process: Process }) => {
       <DataText label={intl.purposeOfTheProcess} text={process.description} hide={!process.description} />
 
       <DataText label={intl.legalBasis} text={process.legalBases.length ? undefined : intl.legalBasisNotFound}>
-        {process.legalBases.map((legalBasis, index) =>
-          <Block key={index}><LegalBasisView legalBasis={legalBasis} /></Block>
+        {process
+          .legalBases
+          .sort((a,b)=> (a.gdpr && codelist.getShortname(ListName.GDPR_ARTICLE, a.gdpr.code)).localeCompare(b.gdpr && codelist.getShortname(ListName.GDPR_ARTICLE, b.gdpr.code)))
+          .map((legalBasis, index) =>
+          <Block key={index}><LegalBasisView legalBasis={legalBasis}/></Block>
         )}
       </DataText>
 
@@ -109,11 +110,7 @@ const ProcessData = (props: { process: Process }) => {
 
         {!!process.productTeams?.length && <Block>
           <span>{intl.productTeam}: </span>
-          {process.productTeams.map((t, i) =>
-            <Block key={i} display='inline' marginRight={theme.sizing.scale100}>
-              <TeamPopover teamId={t} />
-            </Block>
-          )}
+          <TeamList teamIds={process.productTeams} />
         </Block>}
       </DataText>
 
@@ -145,7 +142,7 @@ const ProcessData = (props: { process: Process }) => {
               <Block>{intl.dataProcessorYes}</Block>
               <Block>
                 {dataProcessorAgreements &&
-                  <Block display='flex'>
+                  <Block display='flex' alignItems="center">
                     <Block $style={{ whiteSpace: 'nowrap', margin: '1rem 0' }}>
                       {`${intl.dataProcessorAgreement}: `}
                     </Block>
@@ -154,7 +151,7 @@ const ProcessData = (props: { process: Process }) => {
                 }
               </Block>
               <Block>
-                <span>{intl.isDataProcessedOutsideEUEEAHelpText}: </span>
+                <span>{intl.isDataProcessedOutsideEUEEA}  </span>
                 <span>{boolToText(process.dataProcessing?.dataProcessorOutsideEU)}</span>
               </Block>
             </Block>}
