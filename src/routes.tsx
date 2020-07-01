@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {Route, RouteComponentProps, Switch, withRouter} from 'react-router-dom'
+import {Route, Switch, useHistory, useLocation, useParams} from 'react-router-dom'
 import {Block} from 'baseui/block'
 import {Paragraph1} from 'baseui/typography'
 import {Spinner} from 'baseui/icon'
@@ -26,6 +26,8 @@ import {AlertEventPage} from './pages/AlertEventPage'
 import {getDisclosure, getPolicy, getProcess} from './api'
 import PurposeTable from './components/Dashboard/PurposeTable'
 import {SystemPage} from './pages/SystemPage'
+import {TeamPage} from './pages/TeamPage'
+import {ProductAreaPage} from './pages/ProductAreaPage'
 
 export const processPath = '/process/:section/:code/:processId?'
 
@@ -36,6 +38,8 @@ const Routes = (): JSX.Element => (
       <Route exact path="/thirdparty/:thirdPartyCode" component={ThirdPartyMetadataPage}/>
       <Route exact path="/system" component={SystemSearchPage}/>
       <Route exact path="/system/:systemCode" component={SystemPage}/>
+      <Route exact path="/team/:teamId" component={TeamPage}/>
+      <Route exact path="/productarea/:productAreaId" component={ProductAreaPage}/>
       <Route exact path="/process" component={PurposeListPage}/>
       <Route exact path={processPath} component={ProcessPage}/>
 
@@ -45,9 +49,9 @@ const Routes = (): JSX.Element => (
       <Route exact path="/policy/:id" component={redirect(policyUrl)}/>
       <Route exact path="/disclosure/:id" component={redirect(disclosureUrl)}/>
 
+      <Route exact path="/informationtype/:id?" component={InformationtypePage}/>
+      <Route exact path="/informationtype/:id/edit" component={InformationtypeEditPage}/>
       <Route exact path="/informationtype/create" component={InformationtypeCreatePage}/>
-      <Route exact path="/informationtype/edit/:id" component={InformationtypeEditPage}/>
-      <Route exact path="/informationtype/:id?/:purpose?" component={InformationtypePage}/>
 
       <Route exact path="/admin/codelist/:listname?" component={CodelistPage}/>
       <Route exact path="/admin/audit/:id?/:auditId?" component={AuditPage}/>
@@ -55,19 +59,19 @@ const Routes = (): JSX.Element => (
 
       <Route exact path="/document/:id?" component={DocumentPage}/>
       <Route exact path="/document/create" component={DocumentCreatePage}/>
-      <Route exact path="/document/edit/:id?" component={DocumentEditPage}/>
+      <Route exact path="/document/:id/edit" component={DocumentEditPage}/>
 
       <Route exact path="/alert/events/:objectType?/:id?" component={AlertEventPage}/>
 
       <Route exact path="/" component={Main}/>
-      <Route component={withRouter(NotFound)}/>
+      <Route component={NotFound}/>
     </Switch>
   </Root>
 )
 
-const NotFound = (props: RouteComponentProps<any>) => (
+const NotFound = () => (
   <Block display="flex" justifyContent="center" alignContent="center" marginTop={theme.sizing.scale4800}>
-    <Paragraph1>{intl.pageNotFound} - {props.location.pathname}</Paragraph1>
+    <Paragraph1>{intl.pageNotFound} - {useLocation().pathname}</Paragraph1>
     <img src={notFound} alt={intl.pageNotFound} style={{maxWidth: '65%'}}/>
   </Block>
 )
@@ -87,10 +91,11 @@ const disclosureUrl = async (id: string) => {
   return `/thirdparty/${disclosure.recipient.code}`
 }
 
-const redirect = (fetch: (id: string) => Promise<string>) =>
-  (props: RouteComponentProps<{id: string}>) => {
-    fetch(props.match.params.id).then(props.history.replace)
-    return <Spinner/>
-  }
+const redirect = (fetch: (id: string) => Promise<string>) => () => {
+  const {id} = useParams<{id: string}>()
+  const history = useHistory()
+  fetch(id).then(history.replace)
+  return <Spinner/>
+}
 
 export default Routes

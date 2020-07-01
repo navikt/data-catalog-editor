@@ -64,6 +64,9 @@ export interface IStrings {
   numberOfProcessesWithUnknownLegalBasis: string;
   numberOfProcessesWithoutArticle6LegalBasis: string;
   numberOfProcessesWithoutArticle9LegalBasis: string;
+  numberOfProcessesWithUnknownLegalBasisHelpText: string;
+  numberOfProcessesWithoutArticle6LegalBasisHelpText: string;
+  numberOfProcessesWithoutArticle9LegalBasisHelpText: string;
   processesWithUnknownLegalBasis: string;
   processesWithoutArticle6LegalBasis: string;
   processesWithoutArticle9LegalBasis: string;
@@ -112,6 +115,7 @@ export interface IStrings {
   retentionMonths: string;
   retentionStart: string;
   retentionDescription: string;
+  retentionDescriptionPlaceHolder: string;
   years: string;
   months: string;
   lastEvents: string;
@@ -249,6 +253,7 @@ export interface IStrings {
   informationtypesUsedInDocument: string;
   editDocument: string;
   lastModified: string;
+  excessInfoHelpText: string;
 
   // groups
   POLLY_READ: string;
@@ -375,6 +380,8 @@ export interface IStrings {
   lastChanges: string;
   settings: string;
   defaultProcessDocument: string;
+  goToSite: string
+  categoryNotInUse: string
 }
 
 // Remember import moment locales up top
@@ -395,7 +402,7 @@ const defaultLang = langs.nb
 type IIntl = LocalizedStringsMethods & IStrings;
 
 interface LocalizedStringsFactory {
-  new<T>(props: GlobalStrings<T>, options?: { customLanguageInterface: () => string }): IIntl
+  new<T>(props: GlobalStrings<T>, options?: {customLanguageInterface: () => string}): IIntl
 }
 
 const strings: IntlLangs = {}

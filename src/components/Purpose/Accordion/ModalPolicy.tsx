@@ -8,7 +8,7 @@ import {Plus} from 'baseui/icon'
 import {Select, StatefulSelect, TYPE} from 'baseui/select'
 
 import CardLegalBasis from './CardLegalBasis'
-import {codelist, ListName} from '../../../service/Codelist'
+import {codelist, ListName, SensitivityLevel} from '../../../service/Codelist'
 import {Button, KIND, SIZE as ButtonSize} from 'baseui/button'
 import {InformationTypeShort, LegalBasesUse, LegalBasisFormValues, PolicyFormValues} from '../../../constants'
 import {ListLegalBases} from '../../common/LegalBasis'
@@ -18,6 +18,7 @@ import {intl} from '../../../util'
 import {policySchema} from '../../common/schema'
 import {Tag, VARIANT} from 'baseui/tag'
 import {Docs} from './TablePolicy'
+import {PLACEMENT, StatefulTooltip} from "baseui/tooltip";
 
 
 const modalBlockProps: BlockProps = {
@@ -62,7 +63,7 @@ const FieldInformationType = () => {
   return (
     <Field
       name="informationType"
-      render={({form}: FieldProps<PolicyFormValues>) => (
+      render={({ form }: FieldProps<PolicyFormValues>) => (
         <StatefulSelect
           maxDropdownHeight="400px"
           searchable={true}
@@ -70,7 +71,7 @@ const FieldInformationType = () => {
           type={TYPE.search}
           options={infoTypeSearchResult}
           placeholder={form.values.informationType ? '' : intl.informationTypeSearch}
-          initialState={{value: form.values.informationType}}
+          initialState={{ value: form.values.informationType }}
           onInputChange={event => setInfoTypeSearch(event.currentTarget.value)}
           onChange={params => form.setFieldValue('informationType', params.value[0] as InformationTypeShort)}
           error={!!form.errors.informationType && !!form.submitCount}
@@ -87,7 +88,7 @@ const FieldLegalBasesUse = (props: { legalBasesUse: LegalBasesUse }) => {
   return (
     <Field
       name="legalBasesUse"
-      render={({form}: FieldProps<PolicyFormValues>) => {
+      render={({ form }: FieldProps<PolicyFormValues>) => {
         return (
           <Block width="100%">
             <RadioGroup
@@ -102,7 +103,9 @@ const FieldLegalBasesUse = (props: { legalBasesUse: LegalBasesUse }) => {
               <Radio value={LegalBasesUse.INHERITED_FROM_PROCESS}>{intl.legalBasesProcess}</Radio>
               <Radio value={LegalBasesUse.UNRESOLVED}>{intl.legalBasesUndecided}</Radio>
               <Radio value={LegalBasesUse.DEDICATED_LEGAL_BASES}>{intl.legalBasesOwn}</Radio>
-              <Radio value={LegalBasesUse.EXCESS_INFO}>{intl.EXCESS_INFO}</Radio>
+              <Radio value={LegalBasesUse.EXCESS_INFO}>
+                <StatefulTooltip content={intl.excessInfoHelpText} placement={PLACEMENT.top}>{intl.EXCESS_INFO}</StatefulTooltip>
+              </Radio>
             </RadioGroup>
           </Block>
         )
@@ -122,9 +125,10 @@ type ModalPolicyProps = {
   onClose: () => void
 };
 
-const ModalPolicy = ({submit, errorOnCreate, onClose, isOpen, initialValues, docs, title}: ModalPolicyProps) => {
+const ModalPolicy = ({ submit, errorOnCreate, onClose, isOpen, initialValues, docs, title }: ModalPolicyProps) => {
   const [selectedLegalBasis, setSelectedLegalBasis] = React.useState<LegalBasisFormValues>()
   const [selectedLegalBasisIndex, setSelectedLegalBasisIndex] = React.useState<number>()
+  const [sensitivityLevel, setSensitivityLevel] = React.useState<SensitivityLevel>(SensitivityLevel.ART6)
 
   const disableEnter = (e: KeyboardEvent) => {
     if (e.key === 'Enter') e.preventDefault()
@@ -157,13 +161,13 @@ const ModalPolicy = ({submit, errorOnCreate, onClose, isOpen, initialValues, doc
 
               <ModalBody>
                 <Block {...rowBlockProps}>
-                  <ModalLabel label={intl.informationType}/>
-                  <FieldInformationType/>
+                  <ModalLabel label={intl.informationType} />
+                  <FieldInformationType />
                 </Block>
-                <Error fieldName="informationType"/>
+                <Error fieldName="informationType" />
 
                 <Block {...rowBlockProps}>
-                  <ModalLabel label={intl.subjectCategories}/>
+                  <ModalLabel label={intl.subjectCategories} />
                   <FieldArray
                     name="subjectCategories"
                     render={arrayHelpers => (
@@ -171,7 +175,7 @@ const ModalPolicy = ({submit, errorOnCreate, onClose, isOpen, initialValues, doc
                         <Select
                           options={codelist.getParsedOptionsFilterOutSelected(ListName.SUBJECT_CATEGORY, formikBag.values.subjectCategories)}
                           maxDropdownHeight="300px"
-                          onChange={({option}) => {
+                          onChange={({ option }) => {
                             arrayHelpers.push(option ? option.id : null)
                           }}
                           error={!!arrayHelpers.form.errors.sources && !!arrayHelpers.form.submitCount}
@@ -181,23 +185,23 @@ const ModalPolicy = ({submit, errorOnCreate, onClose, isOpen, initialValues, doc
                     )}
                   />
                 </Block>
-                <Error fieldName="subjectCategories"/>
+                <Error fieldName="subjectCategories" />
 
                 {!!formikBag.values.documentIds?.length && docs &&
-                <Block {...rowBlockProps}>
-                  <ModalLabel label={intl.documents}/>
-                  <FieldArray name="documentIds"
-                              render={arrayHelpers => (
-                                <Block width='100%'>{renderTagList(formikBag.values.documentIds.map(id => docs[id].name), arrayHelpers)}</Block>
-                              )}/>
-                </Block>
+                  <Block {...rowBlockProps}>
+                    <ModalLabel label={intl.documents} />
+                    <FieldArray name="documentIds"
+                      render={arrayHelpers => (
+                        <Block width='100%'>{renderTagList(formikBag.values.documentIds.map(id => docs[id].name), arrayHelpers)}</Block>
+                      )} />
+                  </Block>
                 }
 
                 <Block {...rowBlockProps}>
-                  <ModalLabel label={intl.legalBasesShort}/>
-                  <FieldLegalBasesUse legalBasesUse={formikBag.values.legalBasesUse}/>
+                  <ModalLabel label={intl.legalBasesShort} />
+                  <FieldLegalBasesUse legalBasesUse={formikBag.values.legalBasesUse} />
                 </Block>
-                <Error fieldName="legalBasesUse"/>
+                <Error fieldName="legalBasesUse" />
 
                 {formikBag.values.legalBasesUse === LegalBasesUse.DEDICATED_LEGAL_BASES && (
                   <FieldArray
@@ -209,6 +213,7 @@ const ModalPolicy = ({submit, errorOnCreate, onClose, isOpen, initialValues, doc
                             <CardLegalBasis
                               titleSubmitButton={selectedLegalBasis ? intl.update : intl.add}
                               initValue={selectedLegalBasis || {}}
+                              sensitivityLevel={sensitivityLevel}
                               hideCard={() => {
                                 formikBag.setFieldValue('legalBasesOpen', false)
                                 setSelectedLegalBasis(undefined)
@@ -222,40 +227,74 @@ const ModalPolicy = ({submit, errorOnCreate, onClose, isOpen, initialValues, doc
                                   arrayHelpers.push(values)
                                 }
                                 formikBag.setFieldValue('legalBasesOpen', false)
-                              }}/>
+                              }}
+                            />
                           </Block>
                         ) : (
-                          <Block {...rowBlockProps}>
-                            <ModalLabel/>
-                            <Block width="100%">
-                              <Button
-                                size={ButtonSize.compact}
-                                kind={KIND.minimal}
-                                onClick={() => formikBag.setFieldValue('legalBasesOpen', true)}
-                                startEnhancer={() => <Block display="flex" justifyContent="center"><Plus size={22}/></Block>}
-                              >
-                                {intl.legalBasisAdd}
-                              </Button>
-                              <Block marginTop="1rem">
-                                <ListLegalBases
-                                  legalBases={formikBag.values.legalBases}
-                                  onRemove={(index) => arrayHelpers.remove(index)}
-                                  onEdit={(index) => {
-                                    setSelectedLegalBasis(formikBag.values.legalBases[index])
-                                    setSelectedLegalBasisIndex(index)
+                            <Block {...rowBlockProps}>
+                              <Block width={"100%"}>
+                                <Button
+                                  size={ButtonSize.compact}
+                                  kind={KIND.minimal}
+                                  onClick={() => {
                                     formikBag.setFieldValue('legalBasesOpen', true)
+                                    setSensitivityLevel(SensitivityLevel.ART6)
                                   }}
-                                />
+                                  startEnhancer={() => <Block display="flex" justifyContent="center"><Plus size={22} /></Block>}
+                                >
+                                  {intl.addArticle6}
+                                </Button>
+                                <Block>
+                                  <ListLegalBases
+                                    legalBases={formikBag.values.legalBases}
+                                    onRemove={(index) => arrayHelpers.remove(index)}
+                                    onEdit={(index) => {
+                                      setSelectedLegalBasis(formikBag.values.legalBases.filter(l => codelist.isArt6(l.gdpr))[index])
+                                      setSelectedLegalBasisIndex(index)
+                                      formikBag.setFieldValue('legalBasesOpen', true)
+                                    }}
+                                    sensitivityLevel={SensitivityLevel.ART6}
+                                  />
+                                </Block>
+                              </Block>
+
+                              <Block width={"100%"}>
+                                <Button
+                                  size={ButtonSize.compact}
+                                  kind={KIND.minimal}
+                                  onClick={() => {
+                                    formikBag.setFieldValue('legalBasesOpen', true)
+                                    setSensitivityLevel(SensitivityLevel.ART9)
+                                  }}
+                                  startEnhancer={() => <Block display="flex" justifyContent="center"><Plus size={22} /></Block>}
+                                >
+                                  {intl.addArticle9}
+                                </Button>
+                                <Block>
+                                  <ListLegalBases
+                                    legalBases={formikBag.values.legalBases.filter(l => codelist.isArt9(l.gdpr))}
+                                    onRemove={(index) => {
+                                      arrayHelpers.remove(formikBag.values.legalBases.filter(l => codelist.isArt6(l.gdpr)).length + index)
+                                    }}
+                                    onEdit={
+                                      (index) => {
+                                        setSelectedLegalBasis(formikBag.values.legalBases.filter(l => codelist.isArt9(l.gdpr))[index])
+                                        setSelectedLegalBasisIndex(index)
+                                        formikBag.setFieldValue('legalBasesOpen', true)
+                                      }
+                                    }
+                                    sensitivityLevel={SensitivityLevel.ART9}
+                                  />
+                                </Block>
                               </Block>
                             </Block>
-                          </Block>
-                        )}
+                          )}
                       </React.Fragment>
                     )}
                   />
                 )}
               </ModalBody>
-              <Error fieldName="legalBasesOpen" fullWidth={true}/>
+              <Error fieldName="legalBasesOpen" fullWidth={true} />
 
               <ModalFooter>
                 <Block display="flex" justifyContent="flex-end">

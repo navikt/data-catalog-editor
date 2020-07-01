@@ -3,80 +3,70 @@ import {useEffect} from 'react'
 import {Block} from 'baseui/block'
 import {faPlusCircle} from '@fortawesome/free-solid-svg-icons'
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
-import {RouteComponentProps} from 'react-router-dom'
+import {useHistory, useParams} from 'react-router-dom'
 import {H4} from 'baseui/typography'
-import {StyledSpinnerNext} from 'baseui/spinner'
 
-import InformationtypeMetadata from '../components/InformationType/InformationtypeMetadata/'
-import {intl} from '../util'
+import {InformationtypeMetadata} from '../components/InformationType/InformationtypeMetadata/'
+import {intl, theme} from '../util'
 import {CodeUsage, Disclosure, Document, InformationType, Policy} from '../constants'
 import {ListName} from '../service/Codelist'
 import {user} from '../service/User'
 import {getCodelistUsageByListName, getDisclosuresByInformationTypeId, getDocumentsForInformationType, getInformationType, getPoliciesForInformationType,} from '../api'
-import InformationTypeAccordion from '../components/InformationType/ListCategoryInformationtype'
+import ListCategoryInformationtype from '../components/InformationType/ListCategoryInformationtype'
 import Button from '../components/common/Button'
+import {Spinner} from '../components/common/Spinner'
 
-export type PurposeMap = { [purpose: string]: Policy[] }
+export type PurposeMap = {[purpose: string]: Policy[]}
 
-const InformationtypePage = (props: RouteComponentProps<{ id?: string, purpose?: string }>) => {
-  const [isLoading, setLoading] = React.useState(false)
+const InformationtypePage = () => {
+  const params = useParams<{id?: string}>()
+  const history = useHistory()
+
   const [error, setError] = React.useState(null)
-  const [informationTypeId, setInformationTypeId] = React.useState(props.match.params.id)
+  const [informationTypeId, setInformationTypeId] = React.useState(params.id)
   const [informationtype, setInformationtype] = React.useState<InformationType>()
-  const [policies, setPolicies] = React.useState<Policy[]>([])
-  const [disclosures, setDisclosures] = React.useState<Disclosure[]>([])
-  const [documents, setDocuments] = React.useState<Document[]>([])
+  const [policies, setPolicies] = React.useState<Policy[]>()
+  const [disclosures, setDisclosures] = React.useState<Disclosure[]>()
+  const [documents, setDocuments] = React.useState<Document[]>()
   const [categoryUsages, setCategoryUsages] = React.useState<CodeUsage[]>()
 
   useEffect(() => {
     (async () => {
-      setLoading(true)
       let response = await getCodelistUsageByListName(ListName.CATEGORY)
       setCategoryUsages(response.codesInUse)
-      setLoading(false)
     })()
   }, [])
 
-  useEffect(() => setInformationTypeId(props.match.params.id), [props.match.params.id])
+  useEffect(() => setInformationTypeId(params.id), [params.id])
 
   useEffect(() => {
     (async () => {
       if (!informationTypeId) {
         return
       }
-      setLoading(true)
       try {
-        const infoTypeRes = await getInformationType(informationTypeId)
-        const policiesRes = await getPoliciesForInformationType(informationTypeId)
-        const disclosuresRes = await getDisclosuresByInformationTypeId(informationTypeId)
-        const docsRes = await getDocumentsForInformationType(informationTypeId)
-        setInformationtype(infoTypeRes)
-        setPolicies(policiesRes.content)
-        setDisclosures(disclosuresRes)
-        setDocuments(docsRes.content)
+        setInformationtype(await getInformationType(informationTypeId))
+        setPolicies((await getPoliciesForInformationType(informationTypeId)).content)
+        setDisclosures(await getDisclosuresByInformationTypeId(informationTypeId))
+        setDocuments((await getDocumentsForInformationType(informationTypeId)).content)
       } catch (err) {
         setError(err.message)
       }
 
-      if (!props.match.params.id) props.history.push(`/informationtype/${informationTypeId}`)
-      setLoading(false)
+      if (!params.id) history.push(`/informationtype/${informationTypeId}`)
     })()
   }, [informationTypeId])
 
-  if (isLoading) {
-    return <StyledSpinnerNext size={30}/>
-  }
-
   if (informationTypeId) {
     return <>
+      {!informationtype && <Spinner size={theme.sizing.scale1200}/>}
       {!error && informationtype && (
         <InformationtypeMetadata
           informationtype={informationtype}
           policies={policies}
           disclosures={disclosures}
           documents={documents}
-          expanded={props.match.params.purpose ? [props.match.params.purpose] : []}
-          onSelectPurpose={purpose => props.history.push(`/informationtype/${informationTypeId}/${purpose}`)}
+          onSelectPurpose={purpose => history.push(`/informationtype/${informationTypeId}/${purpose}`)}
         />
       )}
 
@@ -90,13 +80,14 @@ const InformationtypePage = (props: RouteComponentProps<{ id?: string, purpose?:
         <H4 marginTop='0'>{intl.informationTypes}</H4>
         <Block>
           {user.canWrite() &&
-          <Button kind="outline" onClick={() => props.history.push('/informationtype/create')}>
+          <Button kind="outline" onClick={() => history.push('/informationtype/create')}>
             <FontAwesomeIcon icon={faPlusCircle}/>&nbsp;{intl.createNew}
           </Button>
           }
         </Block>
       </Block>
-      <InformationTypeAccordion categoryUsages={categoryUsages}/>
+      {!categoryUsages && <Spinner size={theme.sizing.scale1200}/>}
+      {categoryUsages && <ListCategoryInformationtype categoryUsages={categoryUsages}/>}
     </>
   )
 }
